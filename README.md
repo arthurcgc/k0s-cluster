@@ -1,8 +1,9 @@
 # My k0s cluster
 
 Current setup for my home k8s cluster. It is currently composed of 2 nodes:
-1- master(control-plane) node - running on my ultra mega gaming PC
-2- worker node - running on a raspberry Pi 4B
+
+1. master(control-plane) node - running on my ultra mega gaming PC
+2. worker node - running on a raspberry Pi 4B
 
 ## Installing
 
@@ -30,7 +31,7 @@ This creates an nginx deployment and a nodePort service.
 
 ### Pi-hole
 
-* I use helm to install pi-hole on my cluster. I've already tuned in some nice-to-have options o the helm chart. To do so, run:
+* I use helm to install pi-hole on my cluster. To do so, run:
 
 ```bash
 helm repo add mojo2600 https://mojo2600.github.io/pihole-kubernetes/
