@@ -29,6 +29,12 @@ kubectl apply -f nginx/nginx.yaml
 
 This creates an nginx deployment and a nodePort service.
 
+### Metallb (LoadBalancer)
+
+I started relying on metallb to expose services using my local network, so I don't have to use nodePort services anymore.
+To install metallb please refer to helm/metallb/README.md.
+All of the upcoming services will be exposed using metallb. So it is a requirement to have it installed.
+
 ### Pi-hole
 
 * I use helm to install pi-hole on my cluster. To do so, run:

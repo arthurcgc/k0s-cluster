@@ -99,7 +99,7 @@ serviceWeb:
     port: 80
 
     # -- Optional node port for the web HTTP service
-    nodePort: "8888"
+    # nodePort: "8888"
 
   # -- Configuration for the HTTPS web interface listener
   https:
@@ -113,7 +113,7 @@ serviceWeb:
     nodePort: ""
 
   # -- `spec.type` for the web interface Service
-  type: NodePort
+  type: LoadBalancer
 
   # -- `spec.externalTrafficPolicy` for the web interface Service
   externalTrafficPolicy: Local
