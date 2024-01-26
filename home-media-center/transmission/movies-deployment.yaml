@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transmission-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transmission
+  template:
+    metadata:
+      labels:
+        app: transmission
+    spec:
+      volumes:
+      - name: jellyfin-media
+        persistentVolumeClaim:
+          claimName: jellyfin-media-pvc
+      - name: transmission-config
+        configMap:
+          name: transmission-config
+      containers:
+      - name: transmission
+        image: lscr.io/linuxserver/transmission:latest
+        ports:
+        - containerPort: 9091
+        - containerPort: 51413
+        env:
+        - name: PUID
+          value: "0"
+        - name: PGID
+          value: "0"
+        - name: TZ
+          value: "Brazil/East"
+        - name: USER
+          value: "admin"
+        - name: PASS
+          value: "admin"
+        volumeMounts:
+        - name: jellyfin-media
+          mountPath: /downloads
+        - name: transmission-config
+          mountPath: /defaults
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transmission-service
+spec:
+  selector:
+    app: transmission
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 9091
+    name: http
+  - protocol: TCP
+    port: 51413
+    targetPort: 51413
+    name: torrent

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jackett-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jackett
+  template:
+    metadata:
+      labels:
+        app: jackett
+    spec:
+      containers:
+      - name: jackett
+        image: lscr.io/linuxserver/jackett:latest
+        ports:
+        - containerPort: 9117
+        env:
+        - name: PUID
+          value: "0"
+        - name: PGID
+          value: "0"
+        - name: TZ
+          value: "Brazil/East"
+        volumeMounts:
+        - name: jackett-config
+          mountPath: /config
+      volumes:
+      - name: jackett-config
+        emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jackett-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: jackett
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 9117

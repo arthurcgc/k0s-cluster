@@ -1,0 +1,40 @@
+# available storage: 465.8Gi
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-storage-large
+  labels:
+    type: media
+spec:
+  capacity:
+    storage: 465Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /home/sampi/persistent-volume-mount
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - rpi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-media-pvc
+spec:
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      type: media
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 465Gi
