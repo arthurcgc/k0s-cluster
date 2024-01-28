@@ -16,6 +16,9 @@ spec:
       - name: jellyfin-media2
         persistentVolumeClaim:
           claimName: jellyfin-media2-pvc
+      - name: sonarr-pv
+        persistentVolumeClaim:
+          claimName: sonarr-pvc
       containers:
       - name: sonarr
         image: lscr.io/linuxserver/sonarr:latest
@@ -29,6 +32,8 @@ spec:
         volumeMounts:
         - name: jellyfin-media2
           mountPath: /media
+        - name: sonarr-pv
+          mountPath: /config
 ---
 apiVersion: v1
 kind: Service

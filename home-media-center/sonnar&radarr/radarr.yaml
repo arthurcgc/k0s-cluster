@@ -16,6 +16,9 @@ spec:
       - name: jellyfin-media
         persistentVolumeClaim:
           claimName: jellyfin-media-pvc
+      - name: radarr-pv
+        persistentVolumeClaim:
+          claimName: radarr-pvc
       containers:
       - name: radarr
         image: lscr.io/linuxserver/radarr:latest
@@ -29,6 +32,8 @@ spec:
         volumeMounts:
         - name: jellyfin-media
           mountPath: /media
+        - name: radarr-pv
+          mountPath: /config
 ---
 apiVersion: v1
 kind: Service
