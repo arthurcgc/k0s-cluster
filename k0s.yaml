@@ -5,11 +5,11 @@ metadata:
   name: k0s
 spec:
   api:
-    address: 192.168.0.11
+    address: 192.168.15.13
     k0sApiPort: 9443
     port: 6443
     sans:
-    - 192.168.0.11
+    - 192.168.15.13
     - 172.17.0.1
     - 2804:14d:5c5a:99d9::1001
     - 2804:14d:5c5a:99d9:1a35:6722:8f90:ff91
@@ -73,7 +73,7 @@ spec:
   storage:
     etcd:
       externalCluster: null
-      peerAddress: 192.168.0.11
+      peerAddress: 192.168.15.13
     type: etcd
   telemetry:
     enabled: true

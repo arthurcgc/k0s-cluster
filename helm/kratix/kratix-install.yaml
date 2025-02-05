@@ -1,0 +1,154 @@
+# Default values for kratix.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Addition kratix resources to be created, such as GitStateStores, BucketStateStores and Destinations
+additionalResources:
+- kind: BucketStateStore
+  apiVersion: platform.kratix.io/v1alpha1
+  metadata:
+    name: default
+  spec:
+    bucketName: kratix
+    secretRef:
+      name: minio-credentials
+      namespace: default
+    insecure: true
+    endpoint: minio.kratix-platform-system.svc.cluster.local
+- kind: Namespace
+  apiVersion: v1
+  metadata:
+    creationTimestamp: null
+    name: kratix-platform-system
+- kind: Service
+  apiVersion: v1
+  metadata:
+    creationTimestamp: null
+    name: minio
+    namespace: kratix-platform-system
+  spec:
+    ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 9000
+      nodePort: 9000
+    selector:
+      run: minio
+    type: NodePort
+- kind: Deployment
+  apiVersion: apps/v1
+  metadata:
+    creationTimestamp: null
+    labels:
+      run: minio
+    name: minio
+    namespace: kratix-platform-system
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        run: minio
+    template:
+      metadata:
+        labels:
+          run: minio
+      spec:
+        initContainers:
+        - name: make-buckets
+          image: docker.io/minio/minio:RELEASE.2022-06-30T20-58-09Z
+          volumeMounts:
+          - mountPath: /data
+            name: data-volume
+        containers:
+        - image: docker.io/minio/minio:RELEASE.2022-06-30T20-58-09Z
+          name: minio
+          args: [ "server", "/data" ]
+          ports:
+          - containerPort: 9000
+          volumeMounts:
+          - mountPath: /data
+            name: data-volume
+        volumes:
+        - name: data-volume
+          emptyDir: {}
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    creationTimestamp: null
+    name: minio-credentials
+    namespace: default
+  stringData:
+    accessKeyID: minioadmin
+    secretAccessKey: minioadmin
+- kind: Job
+  apiVersion: batch/v1
+  metadata:
+    name: minio-create-bucket
+    namespace: default
+  spec:
+    template:
+      spec:
+        serviceAccountName: minio-create-bucket
+        initContainers:
+        - name: wait-for-minio
+          image: docker.io/bitnami/kubectl:1.28.6
+          command: [ "sh", "-c", "kubectl wait --for=condition=Ready --timeout=120s -n kratix-platform-system pod -l run=minio" ]
+        containers:
+        - name: minio-event-configuration
+          image: docker.io/minio/mc:RELEASE.2023-06-06T13-48-56Z
+          command: [ "mc", "mb", "--ignore-existing", "minio/kratix" ]
+          env:
+          - name: MC_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: accessKeyID
+          - name: MC_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: secretAccessKey
+          - name: MC_ENDPOINT
+            value: minio.kratix-platform-system.svc.cluster.local
+          - name: MC_HOST_minio
+            value: "http://$(MC_ACCESS_KEY):$(MC_SECRET_KEY)@$(MC_ENDPOINT)"
+        restartPolicy: Never
+    backoffLimit: 4
+- kind: ClusterRole
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: minio-create-bucket
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - pods
+    verbs:
+    - get
+    - list
+    - watch
+- kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: minio-create-bucket
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: minio-create-bucket
+  subjects:
+  - kind: ServiceAccount
+    name: minio-create-bucket
+    namespace: default
+- kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    name: minio-create-bucket
+    namespace: default
+- kind: Destination
+  apiVersion: platform.kratix.io/v1alpha1
+  metadata:
+    name: worker
+  spec:
+    stateStoreRef:
+      name: default
+      kind: BucketStateStore
